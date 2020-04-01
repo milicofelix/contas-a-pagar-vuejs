@@ -16,10 +16,6 @@ Vue.filter('statusGeral', function (value) {
 
 var menuComponet = Vue.extend({
     template: `
-                <h1>{{ title }}</h1>
-                <h3 :class="{'gray':status === false, 'green': status === 0, 'red': status > 0}">
-                    {{ status | statusGeral}}
-                </h3>
                 <nav>
                     <ul>
                         <li v-for="o in menu">
@@ -154,9 +150,9 @@ var billCreateComponent = Vue.extend({
     },
     methods: {
         submit: function () {
-            if(this.$parent.formType == "insert"){
+            if(this.formType == "insert"){
 
-                this.$parent.$children[1].bills.push(this.bill);
+                this.$parent.$refs.billListComponent.bills.push(this.bill);
             }
             this.bill = {
                 date_due: "",
@@ -201,13 +197,17 @@ var appComponent = Vue.extend({
                         color: red;
                     }
                 </style>
+                 <h1>{{ title }}</h1>
+                <h3 :class="{'gray':status === false, 'green': status === 0, 'red': status > 0}">
+                    {{ status | statusGeral}}
+                </h3>
                 <menu-component></menu-component>
                 
                 <div v-show="activedView == 1">              
-                    <bills-list-component></bills-list-component>              
+                    <bills-list-component v-ref:bill-list-component ></bills-list-component>              
                 </div>
                 
-                <div v-if="activedView == 2">
+                <div v-show="activedView == 2">
                     <bill-create-component :bill.sync="bill" :form-type="formType"></bill-create-component>     
                 </div>
     `,
@@ -217,16 +217,23 @@ var appComponent = Vue.extend({
             title: "Contas a pagar",
             activedView: 1,
             formType : "insert",
+            bill: {
+            date_due: "",
+            name: "",
+            value: 0,
+            done: false
+        }
         };
     },
     computed:{
         status: function() {
-            if(!this.bills.length){
+            var billListComponent = this.$refs.billListComponent;
+            if(!billListComponent.bills.length){
                 return false;
             }
             var count = 0;
-            for(var i in this.bills){
-                if(!this.bills[i].done){
+            for(var i in billListComponent.bills){
+                if(!billListComponent.bills[i].done){
                     count++;
                 }
             }
